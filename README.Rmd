@@ -9,6 +9,9 @@ output:
 ### The Problem
 The problem I decided to investigate is the question of how much Portland's famously crumby weather affects the sentiments expressed in tweets about the city.
 
+## Disclaimer
+I did not have enough data to actually try to attempt making a correlation between 
+
 ### Motivation
 Twitter has become a ubiquitous means of self-expression which is entirely public. Thus more and more it has become a source of information about its users. At this point it has become so ubiquitous that nightly news often cites twitter data for vox populi type reporting. Working in media research this past summer I found that statistics about twitter were often used by producers to get a sense for audience engagement. However, many of these statistics were very basic like day-over-day percent-change in followers, numbers of retweets, and etc. These are basic reliable statistics, but in both journalism and consumer research there is also a lot of interest in getting a good cross-sectional read on what twitter users think about various subjects. And doing this computationally is a major challenge which ties into a number of areas which are attracting a lot of attention in data driven industries. 
 
@@ -66,5 +69,7 @@ plot(poldat)
 ```
 
 
-Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive and specialized a package for use on this sort of data. However, the sentiment analysis is dissapointing, the `negativeScore` on the tenth tweet in the above table is 
+Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive and specialized a package for use on this sort of data. However, the sentiment analysis is dissapointing, the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive.
 
+### Analysis
+Since the sentiment data is unreliable, and I can only pull twitter data from the last 7 days. I am not going to draw any conclusions about how the weather affects how Portland's tweeters tweet about the city.
