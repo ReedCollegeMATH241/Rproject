@@ -2,16 +2,42 @@
 title: "R Twitter Sentiment Analysis"
 output:
   html_document:
-    keep_md: yes
+  keep_md: yes
 ---
 ## Math 241 Term Project
-### Motivation
-Twitter has become a ubiquitous means of self-expression which is entirely public. Thus more and more it has become a source of information about its users. At this point it has become so ubiquitous that nightly news often cites twitter data for *vox populi* type reporting. Working in media research this past summer I found that statistics about twitter were often used by producers to get a sense for audience engagement. However, many of these statistics were very basic like day-over-day percent-change in followers, numbers of retweets, and etc. These are basic reliable statistics, but in both journalism and consumer research there is also a lot of interest in getting a good cross-sectional read on what twitter users think about various subjects. And doing this computationally is a major challenge which ties into a number of areas which are attracting a lot of attention in data driven industries. 
-
-One of these areas is sentiment analysis, which is an attempt to extrapolate some sort of summary of the feelings expressed in a unit of text. The sort of initial compromise which the problem requires that one make is the adoption of a metric for sentiment. Of course this is a 
-
-
-
-The purpose of this project is essentially to investigate a toy problem, which is h
 
 ### The Problem
+The problem I decided to investigate is the question of how much Portland's famously crumby weather affects the sentiments expressed in tweets about the city.
+
+### Motivation
+Twitter has become a ubiquitous means of self-expression which is entirely public. Thus more and more it has become a source of information about its users. At this point it has become so ubiquitous that nightly news often cites twitter data for vox populi type reporting. Working in media research this past summer I found that statistics about twitter were often used by producers to get a sense for audience engagement. However, many of these statistics were very basic like day-over-day percent-change in followers, numbers of retweets, and etc. These are basic reliable statistics, but in both journalism and consumer research there is also a lot of interest in getting a good cross-sectional read on what twitter users think about various subjects. And doing this computationally is a major challenge which ties into a number of areas which are attracting a lot of attention in data driven industries. 
+
+One of these areas is sentiment analysis, which is an attempt to extrapolate some sort of summary of the feelings expressed in a unit of text. The sort of initial compromise which the problem requires that one make is the adoption of a metric for sentiment. Of course this is a challenge because even from person to person the perceived sentiment in a text is going to vary. This project is essentially an investigation of some basic methods of sentiment analysis, methods that rely on publicly shared algorithms. On the other side of the spectrum there are a number of commercial services like IBM's Alchemy API that provide the results of far more sophisticated methods.
+
+### Approach
+
+Settle on one of the options for sentiment analysis. As mentioned before there is a whole range of sophistication when it comes to sentiment analysis. I chose to go with the `qdap` package’s polarity, because the [documentation](http://trinker.github.io/qdap/vignettes/qdap_vignette.html#polarity) is excellent in terms of describing the methods used. 
+
+* Collect data using the R package _twitteR_ with the geocode provided by the _ggmap_ package's `geocode('Portland,Or')` function.
+
+* Explore data. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+source('functions.R')
+twits<-read.csv('./Twitter/2015-05-02.csv')
+options(mc.cores=1)
+cor<-Corpus(VectorSource(twits$text))
+cor<-tm_map(cor,function(x) iconv(x,'ASCII', to='UTF-8-MAC', sub='byte'))%>%
+  tm_map(cln_up_sans)%>%
+  tm_map(sent_detect)%>%
+  tm_map(gsub,pattern = '@',replacement = '')
+dl <- as.data.frame(cor)
+datatable(dl)
+dl <- dl[!apply(dl, 1, function(x) any(x=="")),]
+dl <- dl[!apply(dl, 1, function(x) any(x=="…")),] %>%
+  subset(!grepl(pattern='^RT',text))
+```
+
+#### Initial Observations
+The data is messy. Reading from a csv file which was the writeout of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but various emoji's and the like have been removed. To me it seems like this might be a reason to use the `twitteR` package's `search_twitter_and_store` command to store to a database. Looking at the content of the tweets, it's clear that the sentiment analysis is going to be difficult, since many of the tweets are just declarative sentences.
+
