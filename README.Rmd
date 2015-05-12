@@ -2,7 +2,9 @@
 title: "R Twitter Sentiment Analysis"
 output:
   html_document:
-  keep_md: yes
+    fig_caption: yes
+    keep_md: yes
+    self_contained: no
 ---
 ## Math 241 Term Project
 
@@ -56,10 +58,9 @@ dl$negativeScore<-classify_polarity(dl$text,algorithm = 'bayes')[,2]
 dl
 }
 dl<-setSentiment(dl)
-dl
 datatable(dl[,c(2,18,19,20)])
 ```
-```{r, out.width = '\\maxwidth',out.height='600px',echo=FALSE, warning=FALSE, message=FALSE}
+```{r, out.width = '\\maxwidth',out.height='800px',echo=FALSE, warning=FALSE, message=FALSE}
 corp<-Corpus(VectorSource(dl$text))%>%
   tm_map(sent_detect)
 rm <- as.data.frame(corp)%>%
@@ -69,7 +70,8 @@ plot(poldat)
 ```
 
 
-Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive and specialized a package for use on this sort of data. However, the sentiment analysis is dissapointing, the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive.
+Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive (Note how it removed most of the tweets because they lacked whole sentences) and specialized a package for use on this sort of data. However, the sentiment analysis is dissapointing, the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive.
 
 ### Analysis
-Since the sentiment data is unreliable, and I can only pull twitter data from the last 7 days. I am not going to draw any conclusions about how the weather affects how Portland's tweeters tweet about the city.
+Since the sentiment data is unreliable, and I can only pull twitter data from the last 7 days. I am not going to draw any conclusions about how the weather affects how Portland's tweeters tweet about the city. It seems ridiculous even to attempt, but here:
+```
