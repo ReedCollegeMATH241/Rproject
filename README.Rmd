@@ -16,7 +16,7 @@ One of these areas is sentiment analysis, which is an attempt to extrapolate som
 
 ### Approach
 
-First I settle on one of the options for sentiment analysis. As mentioned before there is a whole range of sophistication when it comes to sentiment analysis. I chose to go with the `qdap` package’s polarity, because the [documentation](http://trinker.github.io/qdap/vignettes/qdap_vignette.html#polarity) is excellent in terms of describing the methods used. I am not necessarily expecting to get valid data, and this decision may lead to my getting invalid data. However, if I do get invalid data I would rather understand the reasons why then not, so `qdap`'s sentiment analysis package.
+First I settle on one of the options for sentiment analysis. As mentioned before there is a whole range of sophistication when it comes to sentiment analysis. I chose to go with the `qdap` package’s polarity, because the [documentation](http://trinker.github.io/qdap/vignettes/qdap_vignette.html#polarity) is excellent in terms of describing the methods used. I will also try using the `sentiment` package, which appears to be a little smarter but is not as well documented. I am not necessarily expecting to get valid data, and this decision may lead to my getting invalid data. However, if I do get invalid data I would rather understand the reasons why then not, so `qdap`'s sentiment analysis should allow me to make judgements about how the algorithm is working. 
 
 #### Data Acquisition
 Collect data using the R package _twitteR_ `searchTwitter('Portland',since=start.date, until=end.date ,geocode=geocode)` with the geocode being provided by the _ggmap_ package's `geocode('Portland,Or')` function and `start.date` and `end.date` being dates one day apart.
@@ -28,15 +28,43 @@ source('functions.R')
 twits<-read.csv('./Twitter/2015-05-02.csv')
 options(mc.cores=1)
 dl<-dm(twits)
-a<-sentSplit(dl,'text')
 datatable(dl[,1:2])
 ```
 
 #### Initial Observations
-Reading from a csv file which was the writeout of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but various emoji's and the like have been removed. In order to avoid this one might try a different storage medium.
-For example one could try using the `twitteR` package's `search_twitter_and_store` command to store to a database. Looking at the content of the tweets, it's clear that the sentiment analysis is going to be difficult, since many of the tweets are just declarative sentences. This is due to a flaw inherent in the projects design, which is that we lack the sophistication to select tweets where people are expressing opinions. One thought as for how that might be done is to use the statusSource field provided in the lists obtained from the `twitteR` packages `searchTwitter` function, in order to eliminate generic tweets sent from applications. Another major problem is the lack of sentence structure. `qdap` relies heavily on a regular sentence structure to apply its functions, however one will almost never get that with twitter data. So it can't be helped. The `polarity` function which we will be using expects whole sentences, but we will be putting in whole tweets as input.
+Reading from a csv file which was the writeout of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but various emoji's and the like have been removed. In order to avoid this one might try a different storage medium. For example one could try using the `twitteR` package's `search_twitter_and_store` command to store to a database. 
+
+Looking at the content of the tweets, it's clear that the sentiment analysis is going to be difficult, since many of the tweets are just declarative sentences. This is due to a flaw inherent in the project's design, which is that we lack the sophistication to select tweets where people are expressing opinions. One thought as for how that might be done is to use the statusSource field provided in the lists obtained from the `twitteR` packages `searchTwitter` function, in order to eliminate generic tweets sent from applications.
+
+Another minor problem is the lack of sentence structure. On the one hand, `qdap` relies heavily on a regular sentence structure to apply its functions, however one will almost never get that with twitter data. So it can't be helped. The `polarity` function which we will be using expects whole sentences, but right now we have whole tweets for input. However, after reviewing the theory behind how the function, it seems to turn it into sentences will lead to an inevitable loss of data. On the other hand, the `sentiment` package will not have any problems with this.
+
+#### Basic Analysis
+
+Now I am going to run the two basic algorithms. And compare their outputs, first we will look at a datatable produced by the `sentiment` package. Then at a plot of the polarities in the `qdap` package.
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-dl$text<-lapply(dl$text,)
+setSentiment<-function(dl){
+dl$text<-lapply(dl$text,gsub, pattern='^[[:punct:]]',replacement='')%>%
+  lapply(gsub, pattern='^[[:space:]]',replacement='')
+dl %<>% subset(!(text==''))
+dl$sentiment<-classify_polarity(dl$text,algorithm = 'bayes')[,4]
+dl$positiveScore<-classify_polarity(dl$text,algorithm = 'bayes')[,1]
+dl$negativeScore<-classify_polarity(dl$text,algorithm = 'bayes')[,2]
+dl
+}
+dl<-setSentiment(dl)
+dl
+datatable(dl[,c(2,18,19,20)])
 ```
+```{r, out.width = '\\maxwidth',out.height='600px',echo=FALSE, warning=FALSE, message=FALSE}
+corp<-Corpus(VectorSource(dl$text))%>%
+  tm_map(sent_detect)
+rm <- as.data.frame(corp)%>%
+  sentSplit('text')%>%na.omit
+poldat <- with(rm, polarity(rm, text))
+plot(poldat)
+```
+
+
+Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive and specialized a package for use on this sort of data. However, the sentiment analysis is dissapointing, the `negativeScore` on the tenth tweet in the above table is 
 
