@@ -56,11 +56,11 @@ I discovered rather late into the project that I could not retrieve twitter for 
 
 
 #### Initial Observations
-Reading from a csv file which was the write-out of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but the various emoji's and the like have been removed. In order to avoid this one might try a different storage medium. For example one could try using the `twitteR` package's `search_twitter_and_store` command to store to a database, which I attempted to do but ultimately had to abandon. Part of this data loss seems due to my using `iconv(text,'ASCII', to='UTF-8-MAC', sub='byte')` on the imported data set. This was a necessary step due to issues with the strings.
+Reading from a csv file which was the write-out of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but the various emoji's and the like have been removed. In order to avoid this one might try a different storage medium. For example one could try using the `twitteR` package's `search_twitter_and_store` command to store to a database, which I attempted to do but ultimately had to abandon. Part of this data loss seems due to my using `iconv(text,'ASCII', to='UTF-8-MAC', sub='byte')` on the imported data set. This was a necessary step due to issues with illegal strings produced from reading the csv.
 
-Looking at the content of the tweets, it's clear that the sentiment analysis is going to be difficult, since many of the tweets are just declarative sentences. This is due to a flaw inherent in the project's design, which is that we lack the sophistication to select tweets where people are expressing opinions. One thought as for how that might be done is to use the statusSource field provided in the lists obtained from the `twitteR` packages `searchTwitter` function, in order to eliminate generic tweets sent from applications.
+Looking at the content of the tweets, it's clear that the sentiment analysis is going to be difficult, since many of the tweets are just declarative sentences. This is due to a flaw inherent in the project's design, which is that we lack the sophistication to select tweets where people are expressing opinions. One thought as for how that might be done is to use the statusSource field provided in the lists obtained from the `twitteR` packages `searchTwitter` function in order to eliminate generic tweets sent from applications.
 
-Another minor problem is the lack of sentence structure. On the one hand, `qdap` relies heavily on a regular sentence structure to apply its functions, however one will almost never get that with twitter data. So it can't be helped. The `polarity` function which we will be using expects whole sentences, but right now we have whole tweets for input. However, after reviewing the theory behind how the function, it seems to turn it into sentences will lead to an inevitable loss of data. On the other hand, the `sentiment` package will not have any problems with this.
+Another minor problem is the lack of sentence structure. On the one hand, `qdap` relies heavily on a regular sentence structure to apply its functions, however one will almost never get that with twitter data. So it can't be helped. The `polarity` function which we will be using expects whole sentences, but right now we have whole tweets for input. However, after reviewing the theory behind how the function operates I will use tweets for input anyway. On the other hand, the `sentiment` package will not have any problems with this.
 
 #### Basic Analysis
 
@@ -134,42 +134,74 @@ Now I am going to run the two basic algorithms. And compare their outputs, first
     "filter": "none"
   },
   "evals": ["callback"]
-}</script><!--/html_preserve-->
-One of the benefits of the `sentiment` package is that it is somewhat transparent in how it decides whether something is positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all.
+}</script><!--/html_preserve-->![](write-up_files/figure-html/unnamed-chunk-2-1.png) ![](write-up_files/figure-html/unnamed-chunk-2-2.png) 
+
+One of the benefits of the `sentiment` package is that it is somewhat transparent in how it decides whether something is
+positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all. And as one can see it has a tendency to assign higher positive scores than negatives scores and never assigns a 0 score to tweet.
 
 
 <!--html_preserve--><div id="htmlwidget-5142" style="width:100%;height:auto;" class="datatables"></div>
 <script type="application/json" data-for="htmlwidget-5142">{
   "x": {
     "data": [
-      ["1", "2", "3", "4", "5", "9", "10", "11", "13", "14", "16", "17", "18", "19", "20", "23", "24", "26", "27", "28", "29", "30"],
-      ["Prepping the vocal chords.", "It is a beautiful day, Portland.", "So get outside, spend time in a park.", "A much needed downtown Portland Post Cinco de Mayo carnival bevrera|", "Tomatoes and strawberry planting time!", "Volunteering at the Cinco de Mayo fair here in Portland.", "Hoping to have a booth next year!", "Geek Girl Brunch Portland!", "Got a chance to ride with the Ducati 1299!", "It is Party town here!", "Make Portland normal hemp and cannabis event!", "Derby today with my Portland Sister.", "Nearly 3 years in Portland and first time I dropped in on these.", "do not judge me|", "Tacos!", "I am definitely in Portland.", "Love THIS!", "The Cure beet at Trinket.", "Portland, OR.", "Doughnut!", "Line around the block|", "maybe later."],
-      [0, 0, 0.438178046004133, 0, 0, 0.438178046004133, 0, 0, 0, 0, 0, 0, 0.438178046004133, 0, 0, 0, 0.438178046004133, 0, 0.438178046004133, 0, 0, 0.438178046004133],
+      ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42"],
+      ["A little scary, but very cool", "I am at Hopworks Urban Brewery - hopworksbrewery in Portland, OR", "Prepping the vocal chords.  10 Barrel Brewing PDX", "OR : Voucher Examiner at Department of Veterans Affairs", "It is a beautiful day, Portland. So get outside, spend time in a park. ", "I am at Deschutes Brewery &amp;amp; Public House - deschutespdxpub in Portland, OR", "A much needed downtown Portland Post Cinco de Mayo carnival bevrera|", "Score original w/ zipper  Jackpot Records", "Portland State Vikings", "Missed youuuuuu", "Tomatoes and strawberry planting time! ! ! !", "Nice days for a beer", "Volunteering at the Cinco de Mayo fair here in Portland. Hoping to have a booth next year!", "Shadows, Sunshine, &amp;amp; Birthdays  Portland Waterfront", "Geek Girl Brunch Portland! !  Mother's Bistro &amp;amp; Bar", "Got a chance to ride with the Ducati 1299!  Portland, Oregon", "I am at Kenny &amp;amp; Zuke's Delicatessen - kennyandzukes in Portland, OR", "It is Party town here! !", "Best hat so far  Rialto", "Deschutes Brewery Portland Public House", "Make Portland normal hemp and cannabis event!", "Derby today with my Portland Sister.  McMenamins Mission Theater", "First stop Pints Brewing Company  Pints Urban", "Silently creeping along the waterfront  Portland Waterfront", "Sunny Portland  Portland State University", "Nearly 3 years in Portland and first time I dropped in on these. do not judge me|", "Tacos! ! !", "Portland exploring  Portland Saturday Market", "I am definitely in Portland.  Tilt", "Shut Up and Eat Portland", "I am at Public Domain in Portland, OR", "First stop: Rogue Brewery Falling in love with Portland already itgoeson  Rogue Distillery And", "Pretty colors  Ground Kontrol Classic Arcade", "I am at BedBathBeyond in Portland, OR", "Beautiful day for a trail run", "psufraz23", "Love THIS! !", "I am at TheBelmontGoats in Portland, OR", "One day closer to having my own garden  Portland Farmers Market", "The Cure beet at Trinket. Portland, OR.  Trinket", "Doughnut! Line around the block| maybe later.  Voodoo Doughnut", "One of my favorite houses in Portland, because it does not feel like Portland  Laurelhurst Village"],
+      [0.653197264742181, 0, 0, 0, 0.267261241912424, 0, 0, 0, 0, -0.707106781186547, 0, 0.447213595499958, 0.242535625036333, 0, 0, 0, 0, 0, 0.447213595499958, 0, 0, 0, 0, -0.377964473009227, 0, 0, 0, 0, 0, 0, 0, -0.534522483824849, 0.816496580927726, 0, 0.408248290463863, 0, 0.707106781186547, 0, 0, 0.353553390593274, 0, 0],
       [
+        "cool",
         "-",
         "-",
-        ["beautiful", "fair", "love", "cure"],
         "-",
-        "-",
-        ["beautiful", "fair", "love", "cure"],
-        "-",
-        "-",
+        "beautiful",
         "-",
         "-",
         "-",
         "-",
-        ["beautiful", "fair", "love", "cure"],
+        "-",
+        "-",
+        "nice",
+        "fair",
         "-",
         "-",
         "-",
-        ["beautiful", "fair", "love", "cure"],
-        "-",
-        ["beautiful", "fair", "love", "cure"],
         "-",
         "-",
-        ["beautiful", "fair", "love", "cure"]
+        "best",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "love",
+        ["pretty", "classic"],
+        "-",
+        "beautiful",
+        "-",
+        "love",
+        "-",
+        "-",
+        "cure",
+        "-",
+        ["favorite", "like"]
       ],
       [
+        "scary",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "missed",
         "-",
         "-",
         "-",
@@ -182,6 +214,16 @@ One of the benefits of the `sentiment` package is that it is somewhat transparen
         "-",
         "-",
         "-",
+        "-",
+        "creeping",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        ["rogue", "falling", "rogue"],
         "-",
         "-",
         "-",
@@ -213,12 +255,17 @@ One of the benefits of the `sentiment` package is that it is somewhat transparen
     "filter": "none"
   },
   "evals": ["callback"]
-}</script><!--/html_preserve--><img src="write-up_files/figure-html/unnamed-chunk-3-1.png" title="" alt="" width="\maxwidth" />
-The `qdap` output is a little more clear in how it is derived. In the `pos.words` column you can see which word is weighted by the `polarity` algorithm. The function doesn't explicitly label things as positive or negative, so one must come up with that spectrum on one's own. Another issue here is that the 
+}</script><!--/html_preserve-->
+The `qdap` output is a little more clear in how it is derived. In the `pos.words` column you can see which word is weighted by the `polarity` algorithm. The function doesn't explicitly label things as positive or negative, so one must come up with that spectrum on one's own. I actually prefer the `qdap` results since the algorithm is more conservative and less aggressive than the `sentiment` package's. 
 
+Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment
+package has the benefit of being easier to interpret and easier to use. However, the package's sentiment analysis is disappointing and non-transparent. the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Therefore I would have gone with using the `qdap` package in the end, since at least it's easier to understand how that data is generated.
 
-Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive (Note how it removed most of the tweets because they lacked whole sentences) and specialized a package for use on this sort of data. However, the sentiment analysis is disappointing. the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive. Given the poor quality of the data it seems that a reassesment of the methods is required.
+Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive. Given the poor quality of the data it seems that a reassesment of the methods is required.
 
-Given the data I would have used counts of positive and negative messages in a given day as variables and tried to correlate them to weather events. The `weatherData` package, which essentially scrapes [weather underground](http://www.wunderground.com) would have been used to pull a detailed weather summary for each day. And I would have assessed the correlations between weather metrics like inches of rain and the day's counts. If  
+Given the data I would have used the summed polarity for each given day as a variable and tried to correlate it to weather events. The `weatherData` package, which essentially scrapes [weather underground](http://www.wunderground.com) would have been used to pull a detailed weather summary for each day. And I would have assessed the correlations between weather metrics like inches of rain and the day's polarity score. To see how predictive it was I would use a regression, but I would not necessarily trust those results.
 
 ### Conclusions
+Since I was not able to ultimately assess the question I set out to investigate I am going to make some general conclusions about the techniques I was trying to use. Sentiment analysis of twitter data is unlikely to be reliable unless a very smart context sensitive algorithm is used. To expand on the methods I used here, one might consider using the `openNLP` package's `Maxent_Entity_Annotator`function to identify the subjects of tweets, one could then eliminate some of the proper nouns with terms that are picked up by the polarity function. For instance 'rogue brewery' produced a negative score, despite the fact that the author was writing about how they were 'Falling in love with Portland already'. 
+
+In terms of what I would do differently if I could redo the project, I think I would have been storing tweets since my proposal so that I had more than 6 days of twitter data. I also might consider using the `polarity.frame` function to identify certain words in tweets that are positive or negative but may not be in the standard terms.

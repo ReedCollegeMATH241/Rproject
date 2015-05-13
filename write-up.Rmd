@@ -63,8 +63,12 @@ dl
 }
 dl<-setSentiment(dl)
 datatable(dl[,c(2,18,19,20)])
+ggplot(dl,aes(x=negativeScore))+geom_histogram()+ggtitle('Negative Score Occurences')
+ggplot(dl,aes(x=positiveScore))+geom_histogram()+ggtitle('Positive Score Occurences')
 ```
-One of the benefits of the `sentiment` package is that it is somewhat transparent in how it decides whether something is positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all.
+
+One of the benefits of the `sentiment` package is that it is somewhat transparent in how it decides whether something is
+positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all. And as one can see it has a tendency to assign higher positive scores than negatives scores and never assigns a 0 score to tweet.
 
 
 ```{r, out.width = '\\maxwidth',echo=FALSE, warning=FALSE, message=FALSE}
@@ -86,3 +90,6 @@ Now I actually have a small enough data set that I could potentially use the fre
 Given the data I would have used the summed polarity for each given day as a variable and tried to correlate it to weather events. The `weatherData` package, which essentially scrapes [weather underground](http://www.wunderground.com) would have been used to pull a detailed weather summary for each day. And I would have assessed the correlations between weather metrics like inches of rain and the day's polarity score. To see how predictive it was I would use a regression, but I would not necessarily trust those results.
 
 ### Conclusions
+Since I was not able to ultimately assess the question I set out to investigate I am going to make some general conclusions about the techniques I was trying to use. Sentiment analysis of twitter data is unlikely to be reliable unless a very smart context sensitive algorithm is used. To expand on the methods I used here, one might consider using the `openNLP` package's `Maxent_Entity_Annotator`function to identify the subjects of tweets, one could then eliminate some of the proper nouns with terms that are picked up by the polarity function. For instance 'rogue brewery' produced a negative score, despite the fact that the author was writing about how they were 'Falling in love with Portland already'. 
+
+In terms of what I would do differently if I could redo the project, I think I would have been storing tweets since my proposal so that I had more than 6 days of twitter data. I also might consider using the `polarity.frame` function to identify certain words in tweets that are positive or negative but may not be in the standard terms.
