@@ -6,21 +6,22 @@ output: html_document
 ## Math 241 Term Project
 
 ### The Problem
-The problem I decided to investigate is the question of how much Portland's famously crumby weather affects the sentiments expressed in tweets about the city.
+The problem I initally set out to investigate was how much Portland's famously crumby weather affects the sentiments expressed in tweets about the city.
 
 ## Disclaimer
 I did not have enough data to actually try to attempt to draw any serious conclusions.
 
 ### Motivation
-Twitter has become a ubiquitous means of self-expression which is entirely public. Thus more and more it has become a source of information about its users. At this point it has become so ubiquitous that nightly news often cites twitter data for vox populi type reporting. Working in media research this past summer I found that statistics about twitter were often used by producers to get a sense for audience engagement. However, many of these statistics were very basic like day-over-day percent-change in followers, numbers of retweets, and etc. These are basic reliable statistics, but in both journalism and consumer research there is also a lot of interest in getting a good cross-sectional read on what twitter users think about various subjects. And doing this computationally is a major challenge which ties into a number of areas which are attracting a lot of attention in data driven industries. 
+Twitter has become a ubiquitous means of self-expression which is entirely public. Thus more and more it has become a source of information about its users. At this point it has become so ubiquitous that nightly news often cites twitter data for vox populi type reporting. Working in media research this past summer I found that statistics about twitter were often used by producers to get a sense for audience engagement. However, many of these statistics were very basic like day-over-day percent-change in followers, numbers of retweets, number of times favorited, and so on. These are basic reliable statistics, but in both journalism and consumer research there is also a lot of interest in getting a good cross-sectional read on what twitter users think about various subjects. And doing this computationally is a major challenge which ties into a number of areas which are attracting a lot of attention in data driven industries.
 
-One of these areas is sentiment analysis, which is an attempt to extrapolate some sort of summary of the feelings expressed in a unit of text. The sort of initial compromise that the problem of extracting sentiment that one must make is the adoption of a metric for sentiment. Of course this is a challenge because even from person to person the perceived sentiment in a text is going to vary. This project is essentially an investigation of some basic methods of sentiment analysis, methods that rely on publicly shared algorithms. On the other side of the spectrum there are a number of commercial services like IBM's Alchemy API that provide the results of far more sophisticated methods. 
+One of these areas is sentiment analysis, which is an attempt to extrapolate some sort of summary of the feelings expressed in a unit of text. The initial compromise that the problem of extracting sentiment requires is the adoption of a metric for sentiment. Of course this is a challenge because even from person to person the perceived sentiment in a text is going to vary. This project is essentially an investigation of some basic methods of sentiment analysis, methods that rely on publicly shared algorithms. On the other side of the spectrum there are a number of commercial services like IBM's Alchemy API that provide the results of far more sophisticated methods. 
+
 
 ### Approach
 
-First I settle on one of the options for sentiment analysis. As mentioned before there is a whole range of sophistication when it comes to sentiment analysis. I chose to go with the `qdap` package’s polarity, because the [documentation](http://trinker.github.io/qdap/vignettes/qdap_vignette.html#polarity) is excellent in terms of describing the methods used. I will also try using the `sentiment` package, which appears to be a little smarter but is not as well documented. I am not necessarily expecting to get valid data, and the decision of which package I use may lead to my getting invalid data. However, if I do get invalid data I would rather understand the reasons why then not, so `qdap`'s sentiment analysis should allow me to make judgements about how the algorithm is working. 
+First I settle on one of the options for sentiment analysis. As mentioned before there is a whole range of sophistication when it comes to sentiment analysis. I chose to go with the `qdap` package’s polarity, because the [documentation](http://trinker.github.io/qdap/vignettes/qdap_vignette.html#polarity) is excellent in terms of describing the methods used. I will also try using the `sentiment` package, which appears to be a little smarter but is not as well documented. I suspect it operates on similar principles. I am not necessarily expecting to get valid data, and the decision of which package I use may lead to my getting invalid data. However, if I do get invalid data I would rather understand the reasons why then not, so `qdap`'s sentiment analysis should allow me to make judgements about how the algorithm is working. 
 
-#### Data Acquisition
+### Data Acquisition
 Collect data using the R package _twitteR_ `searchTwitter('Portland',since=start.date, until=end.date ,geocode=geocode)` with the geocode being provided by the _ggmap_ package's `geocode('Portland,Or')` function and `start.date` and `end.date` being dates one day apart.
 
 I discovered rather late into the project that I could not retrieve twitter for days which were more than 7 days earlier than the time of data acquisition. In order to make the data stable I retrieved all seven days worth of data for the last week and saved them each to individual twitter files. Unfortunately, seven days was not really enough to get a read on how weather would effect sentiment in tweets about the city of Portland.
@@ -31,14 +32,14 @@ I discovered rather late into the project that I could not retrieve twitter for 
 source('functions.R')
 twits<-read.csv('./Twitter/2015-05-02.csv')
 options(mc.cores=1)
+## clean the data
 dl<-dm(twits)
 datatable(dl[,1:2])
 ```
 
-Clearly a little more clean-up will be required.
 
 #### Initial Observations
-Reading from a csv file which was the writeout of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but the various emoji's and the like have been removed. In order to avoid this one might try a different storage medium. For example one could try using the `twitteR` package's `search_twitter_and_store` command to store to a database, which I attempted to do but ultimately had to abandon. 
+Reading from a csv file which was the write-out of a `twListToDF` call has removed a certain amount of data. I am not exactly sure why this is but the various emoji's and the like have been removed. In order to avoid this one might try a different storage medium. For example one could try using the `twitteR` package's `search_twitter_and_store` command to store to a database, which I attempted to do but ultimately had to abandon. Part of this data loss seems due to my using `iconv(text,'ASCII', to='UTF-8-MAC', sub='byte')` on the imported data set. This was a necessary step due to issues with the strings.
 
 Looking at the content of the tweets, it's clear that the sentiment analysis is going to be difficult, since many of the tweets are just declarative sentences. This is due to a flaw inherent in the project's design, which is that we lack the sophistication to select tweets where people are expressing opinions. One thought as for how that might be done is to use the statusSource field provided in the lists obtained from the `twitteR` packages `searchTwitter` function, in order to eliminate generic tweets sent from applications.
 
@@ -61,22 +62,24 @@ dl
 dl<-setSentiment(dl)
 datatable(dl[,c(2,18,19,20)])
 ```
-```{r, out.width = '\\maxwidth',out.height='800px',echo=FALSE, warning=FALSE, message=FALSE}
+One of the benefits of the `sentiment` package is that it is somewhat transparent in how it decides whether something is positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all.
+
+
+```{r, out.width = '\\maxwidth',echo=FALSE, warning=FALSE, message=FALSE}
 corp<-Corpus(VectorSource(dl$text))%>%
-  tm_map(sent_detect)
-rm <- as.data.frame(corp)%>%
-  sentSplit('text')%>%na.omit
-```
-```{r,echo=FALSE, warning=FALSE, message=FALSE}
-poldat <- with(rm, polarity(rm, text))
+ tm_map(gsub,pattern='[[:punct:]]{2,}',replacement='')
+rm <- as.data.frame(corp)%>%sentSplit('text')%>% na.omit
+poldat <- with(rm,polarity(rm, list(text)))
+tp<-poldat$all%>%
+  subset(!(text=='!'))
+datatable(tp[,c(1,3,4,5)])
 plot(poldat)
 ```
+The `qdap` output is a little more clear in how it is derived. In the `pos.words` column you can see which word is weighted by the `polarity` algorithm. The function doesn't explicitly label things as positive or negative, so one must come up with that spectrum on one's own. Another issue here is that the 
 
 
-Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive (Note how it removed most of the tweets because they lacked whole sentences) and specialized a package for use on this sort of data. However, the sentiment analysis is dissapointing, the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive.
+Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment package has the benefit of being easier to interpret and easier to use. Despite the nicety of `qdap`'s documentation it is too sensitive (Note how it removed most of the tweets because they lacked whole sentences) and specialized a package for use on this sort of data. However, the sentiment analysis is disappointing. the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive. Given the poor quality of the data it seems that a reassesment of the methods is required.
 
-### Analysis
-Since the sentiment data is unreliable, and I can only pull twitter data from the last 7 days. I am not going to draw any conclusions about how the weather affects how Portland's tweeters tweet about the city. It seems ridiculous even to attempt, but here:
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+Given the data I would have used counts of positive and negative messages in a given day as variables and tried to correlate them to weather events. The `weatherData` package, which essentially scrapes [weather underground](http://www.wunderground.com) would have been used to pull a detailed weather summary for each day. And I would have assessed the correlations between weather metrics like inches of rain and the day's counts. If  
 
-```
+### Conclusions

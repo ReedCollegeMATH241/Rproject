@@ -46,3 +46,6 @@ dm<-function(twits){
     subset(!(grepl(pattern='^RT',text)|grepl(pattern='^Hot Seller',text)))
   dl
 }
+grab_geo<-function(x,dist,unit){
+  gsub(' ','',paste(paste(geocode(x)[2:1],collapse=','),",10mi",collapse=''))
+}
