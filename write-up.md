@@ -64,7 +64,7 @@ Another minor problem is the lack of sentence structure. On the one hand, `qdap`
 
 #### Basic Analysis
 
-Now I am going to run the two basic algorithms. And compare their outputs, first we will look at a datatable produced by the `sentiment` package. Then at a plot of the polarities in the `qdap` package.
+Now I am going to run the two basic algorithms. And compare their outputs, first we will look at a datatable produced by the `sentiment` package. Then at the output of the `polarity` function of the `qdap` package.
 
 <!--html_preserve--><div id="htmlwidget-5630" style="width:100%;height:auto;" class="datatables"></div>
 <script type="application/json" data-for="htmlwidget-5630">{
@@ -137,7 +137,9 @@ Now I am going to run the two basic algorithms. And compare their outputs, first
 }</script><!--/html_preserve-->![](write-up_files/figure-html/unnamed-chunk-2-1.png) ![](write-up_files/figure-html/unnamed-chunk-2-2.png) 
 
 One of the benefits of the `sentiment` package is that it is somewhat transparent in how it decides whether something is
-positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all. And as one can see it has a tendency to assign higher positive scores than negatives scores and never assigns a 0 score to tweet.
+positive or negative in sentiment. Clearly it just compares negative to positive and assigns the sentiment as the greater of the two. However how it calculates those values is not transparent at all. And as one can see it has a tendency to assign higher positive scores than negatives scores and never assigns a 0 score to any tweets.
+
+We will now look at the output of the `qdap` `polarity` function:
 
 
 <!--html_preserve--><div id="htmlwidget-5142" style="width:100%;height:auto;" class="datatables"></div>
@@ -256,16 +258,16 @@ positive or negative in sentiment. Clearly it just compares negative to positive
   },
   "evals": ["callback"]
 }</script><!--/html_preserve-->
-The `qdap` output is a little more clear in how it is derived. In the `pos.words` column you can see which word is weighted by the `polarity` algorithm. The function doesn't explicitly label things as positive or negative, so one must come up with that spectrum on one's own. I actually prefer the `qdap` results since the algorithm is more conservative and less aggressive than the `sentiment` package's. 
+The `qdap` output is a little more clear in how it is derived. In the `pos.words` or `neg.words` column you can see which word is weighted by the `polarity` algorithm. The function doesn't explicitly label things as positive or negative, so one must come up with that spectrum on one's own. I actually prefer the `qdap` results since the algorithm is more conservative and less aggressive than the `sentiment` package's. 
 
 Based off these results, neither the `sentiment` nor the `qdap` package have provided very reliable results. But the sentiment
 package has the benefit of being easier to interpret and easier to use. However, the package's sentiment analysis is disappointing and non-transparent. the `negativeScore` on the tenth tweet in the above table is a really strong indication of the package's unreliability. Therefore I would have gone with using the `qdap` package in the end, since at least it's easier to understand how that data is generated.
 
-Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive. Given the poor quality of the data it seems that a reassesment of the methods is required.
+Now I actually have a small enough data set that I could potentially use the free alchemyAPI to do the sentiment analysis. However, I do not know how to integrate its functionality with R so it is unfeasible. As a test case I did run the first few items through the API and it decided the first four tweets in the above list were positive. Given the poor quality of the data it seems that a reassesment of the methods might be required.
 
 Given the data I would have used the summed polarity for each given day as a variable and tried to correlate it to weather events. The `weatherData` package, which essentially scrapes [weather underground](http://www.wunderground.com) would have been used to pull a detailed weather summary for each day. And I would have assessed the correlations between weather metrics like inches of rain and the day's polarity score. To see how predictive it was I would use a regression, but I would not necessarily trust those results.
 
 ### Conclusions
 Since I was not able to ultimately assess the question I set out to investigate I am going to make some general conclusions about the techniques I was trying to use. Sentiment analysis of twitter data is unlikely to be reliable unless a very smart context sensitive algorithm is used. To expand on the methods I used here, one might consider using the `openNLP` package's `Maxent_Entity_Annotator`function to identify the subjects of tweets, one could then eliminate some of the proper nouns with terms that are picked up by the polarity function. For instance 'rogue brewery' produced a negative score, despite the fact that the author was writing about how they were 'Falling in love with Portland already'. 
 
-In terms of what I would do differently if I could redo the project, I think I would have been storing tweets since my proposal so that I had more than 6 days of twitter data. I also might consider using the `polarity.frame` function to identify certain words in tweets that are positive or negative but may not be in the standard terms.
+In terms of what I would do differently if I could redo the project, I think I would have been storing tweets since my proposal so that I had more than 6 days of twitter data. I also might consider using the `polarity.frame` function to identify certain words in tweets that are positive or negative but may not be in the standard terms. I think ultimately sentiment analysis should be taken with a grain of salt, especially when one uses either the `qdap` or `sentiment` packages in R to do it.
